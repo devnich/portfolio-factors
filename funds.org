@@ -3,11 +3,11 @@
 Proportional explained variance: [0.48  0.203 0.049 0.029 0.019]
 Cumulative explained variance: [0.48  0.683 0.731 0.76  0.779]
 ** Factors
-1. Equity vs. bond (~0.48~)
-   1. IJH (mid-cap) is the maximum equity
+1. Stocks vs. bonds (~0.48~)
+   1. IJH (mid-cap) is the maximum stock
    2. TLT is the maximum bond
    3. VPU is equity
-   4. LQD (corporate bonds) is weakly equity
+   4. LQD (corporate bonds) is weakly stock
    5. GLD, AGG, and TIP are uncorrelated
 2. US interest rate sensitivity (~0.203~)
    1. IEF (7-10 year Treasury) is maximum interest rate sensitivity
@@ -37,8 +37,8 @@ Cumulative explained variance: [0.48  0.683 0.731 0.76  0.779]
 Proportional explained variance: [0.41  0.195 0.112 0.039 0.021]
 Cumulative explained variance: [0.41  0.605 0.717 0.757 0.777]
 ** Factors
-1. Equity vs. bond (~0.41~)
-   1. Foreign funds are the maximum equity
+1. Stocks vs. bonds (~0.41~)
+   1. Foreign funds are the maximum stocks
 2. US interest rate sensitivity (~0.195~)
    1. Slightly different ordering from 2004
 3. US markets and/or housing crash rebound (~0.112~)
@@ -58,6 +58,24 @@ Cumulative explained variance: [0.41  0.605 0.717 0.757 0.777]
 0.53 EMB	iShares JP Morgan USD Em Mkts Bd ETF
 0.48 DBC	Invesco DB Commodity Tracking
 0.33 GLD	SPDR Gold Shares
+#+END_EXAMPLE
+
+* 1998 Varimax interpretation
+Proportional explained variance: [0.335 0.306 0.136 0.02  0.01 ]
+Cumulative explained variance: [0.335 0.641 0.777 0.797 0.807]
+** Factors
+1. Bonds (~0.335~)
+2. Stocks (~0.306~)
+   1 and 2 are inverses of each other
+3. Foreign stocks (~0.136~)
+   Gold and US stocks load moderately
+4. Long vs short interest rates (~0.02~)
+5. US large cap (~0.01~)
+** Idiosyncratic variables (low communality)
+#+BEGIN_EXAMPLE
+0.66 VPACX	Vanguard Pacific Stock Index Investor
+0.56 VGSIX	Vanguard Real Estate Index Investor
+0.18 USERX	US Global Investors Gld&Prec Mtls
 #+END_EXAMPLE
 
 * Data set
@@ -113,3 +131,7 @@ AGG BWX DBC DFJ EEM EFA EMB FIASX GLD IEF IJH IJR IVV LQD LTPZ RWO SCZ SHY TIP T
 AGG DBC DFJ EEM EFA FIASX GLD IEF IJH IJR IVV LQD SHY TIP TLT VDC VEIEX VEURX VGSIX VPACX VPU
 *** Total 2004, old tickers (includes GLD)
 AGG EEM EFA FIASX GLD IEF IJH IJR IVV LQD SHY TIP TLT VDC VEIEX VEURX VGSIX VPACX VPU
+*** Total 2000
+IJH IJR IVV USERX VBMFX VEIEX VEURX VFICX VFISX VFITX VGSIX VIPSX VPACX VTMGX VUSTX
+*** Total 1998
+NAESX USERX VBMFX VEIEX VEURX VFICX VFINX VFISX VFITX VGSIX VMCIX VPACX VUSTX

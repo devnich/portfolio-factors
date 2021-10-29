@@ -67,19 +67,27 @@ def factor(fname="asset_cor_2009.csv", rotation="varimax", n=5):
     fa.fit(corr)
 
     # Print explained variance
-    var = fa.get_factor_variance()
+    fvar = fa.get_factor_variance()
     print("Proportional explained variance:")
-    print(var[1].round(3))
+    print(fvar[1].round(3))
     print("Cumulative explained variance:")
-    print(var[2].round(3))
+    print(fvar[2].round(3))
 
+    # Create factor DataFrame
+    factor_labels = [''.join(['F', str(i)]) for i in range(1, n+1)]
+    df = pd.DataFrame(data=fa.loadings_.round(2),
+                      index=data.index,
+                      columns=factor_labels)
 
-    # Add factors to new DataFrame
-    column_values = [''.join(['F', str(i)]) for i in range(1, n+1)]
-    df = pd.DataFrame(data=fa.loadings_.round(2), index=data.index,
-                      columns=column_values)
-    # Additional info for new DataFrame
-    df = pd.concat([data["Name"], df], axis=1)
+    # Create factor R2 DataFrame
+    r2_labels = ['_'.join([i, 'R2']) for i in factor_labels]
+    var = pd.DataFrame(data=np.square(fa.loadings_).round(2),
+                       index=data.index,
+                       columns=r2_labels)
+
+    # Insert asset class name
+    df = pd.concat([data["Name"], df, var], axis=1)
+
     df["Communality"] = fa.get_communalities().round(2)
 
     # Save the processed file
@@ -89,9 +97,12 @@ def factor(fname="asset_cor_2009.csv", rotation="varimax", n=5):
 
     return fa, df
 
+# Factor plot visualization:
+# https://rpubs.com/danmirman/plotting_factor_analysis
+
 # Then look at value/quality screeners, cf https://twitter.com/soloprosperity/status/1450228819273551876
 
-def generate_covariance():
+def gen_covariance_files():
     """Create covariance matrices from correlations and standard deviations."""
     path = Path()
     for filename in path.glob(''.join(['asset_cor_', '[0-9]'*4, '.csv'])):
