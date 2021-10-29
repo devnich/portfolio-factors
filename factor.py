@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 # conda install -c ets factor_analyzer
 from factor_analyzer import FactorAnalyzer
+from factor_analyzer.factor_analyzer import calculate_bartlett_sphericity as bartlett
+from factor_analyzer.factor_analyzer import calculate_kmo as kmo
 
 #---------------------------------
 #  Factor Analysis references
@@ -55,6 +57,30 @@ pp = pprint.PrettyPrinter(width=100, compact=True, indent=2)
 # Display DataFrames without truncation
 pd.set_option("display.max_columns", None, "precision", 2)
 
+def colinear(fname="asset_cor_2009.csv", criterion=0.9):
+    """Look for potentially colinear items in the correlation matrix."""
+
+    data = pd.read_csv(fname, index_col="Ticker")
+    corr = data[data.index]
+
+    # Set diagonal to NaN
+    np.fill_diagonal(corr.values, np.nan)
+
+    # Filter by criterion
+    filtered = corr.where(corr > criterion)
+
+    # Drop empty columns
+    reduced = filtered.dropna(axis=1, how='all')
+
+    # Insert asset class name
+    reduced = pd.concat([data["Name"], reduced], axis=1)
+
+    # Save the processed file
+    parts = fname.split("asset_cor_")
+    newfile = '_'.join(["colinear", parts[1]])
+    reduced.to_csv(newfile)
+
+
 def factor(fname="asset_cor_2009.csv", rotation="varimax", n=5):
     """Run an exploratory factor analysis and save the output."""
 
@@ -68,6 +94,7 @@ def factor(fname="asset_cor_2009.csv", rotation="varimax", n=5):
 
     # Print explained variance
     fvar = fa.get_factor_variance()
+    print("Variables:", corr.shape)
     print("Proportional explained variance:")
     print(fvar[1].round(3))
     print("Cumulative explained variance:")
@@ -80,7 +107,7 @@ def factor(fname="asset_cor_2009.csv", rotation="varimax", n=5):
                       columns=factor_labels)
 
     # Create factor R2 DataFrame
-    r2_labels = ['_'.join([i, 'R2']) for i in factor_labels]
+    r2_labels = ['_'.join([i, 'r2']) for i in factor_labels]
     var = pd.DataFrame(data=np.square(fa.loadings_).round(2),
                        index=data.index,
                        columns=r2_labels)
