@@ -1,0 +1,48 @@
+#+STARTUP: showall indent
+#+OPTIONS: tex:t toc:2 H:6 ^:{}
+
+* NumPy arrays
+1. Return vertical vector:
+   ~v.reshape(-1, 1)~
+2. Return horizontal vector:
+   ~v or v.reshape(1, -1)~
+3. Horizontal item-by-item multiplication:
+   ~v * array~
+4. Vertical item-by-item multiplication:
+   ~v.reshape(-1, 1) * array~
+5. Matrix multiplication (row x column):
+   ~v @ array~
+
+* Correlation and covariance
+cor(x,y) = cov(x,y) / (sd(x) * sd(y))
+cov(x,y) = cor(x,y) * sd(x) * sd(y)
+
+* Diversification ratio
+https://blog.thinknewfound.com/2018/12/maximizing-diversification/
+DR = (w . sd) / sqrt(w . Σ . wT)
+
+#+BEGIN_SRC python
+dr = numpy.dot(w, sd) / numpy.sqrt(numpy.linalg.multi_dot(w, cov, w))
+#+END_SRC
+
+* Optimization
+#+BEGIN_SRC python
+import numpy as np
+from scipy.optimize import minimize, Bounds
+ #+END_SRC
+
+* Using the Factor Analyzer library
+https://factor-analyzer.readthedocs.io/en/latest/factor_analyzer.html
+1. Loadings of variables onto factors:
+    ~fa.loadings_~
+2. Proportion of variable's variance that is shared (i.e. non-unique, explained by other variables):
+    ~fa.get_communalities()~
+3. Proportion of variable's variance that is unique; inverse of ~get_communalities()~:
+    ~fa.get_uniquenesses()~
+
+* Statistics references
+** Principle Components Analysis
+https://machinelearningmastery.com/calculate-principal-component-analysis-scratch-python/
+** Factor Analysis
+https://journals.sagepub.com/doi/full/10.1177/0095798418771807
+https://stats.idre.ucla.edu/spss/seminars/introduction-to-factor-analysis/a-practical-introduction-to-factor-analysis/
