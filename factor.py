@@ -129,10 +129,10 @@ def diversification_inputs(weights, asset_cov):
     cov = cov_df.values
     sd = np.sqrt(cov.diagonal())
 
-    return w, cov, sd, bounds
+    return w, cov, sd, bounds, w_df
 
 
-def optimize_diversification(w, cov, sd, bounds):
+def optimize_diversification(w, cov, sd, bounds, leverage, short):
     """Optimize the weights for the diversification_ratio() objective function."""
 
     # minimize(fun, x0, args=(), method=None, jac=None, hess=None, hessp=None,
@@ -142,12 +142,20 @@ def optimize_diversification(w, cov, sd, bounds):
     dr = diversification_ratio(w, cov, sd)
     bets = dr * dr
 
-    # Constrain weights to sum to 1
-    constraint = LinearConstraint(np.ones(len(w)), lb=1, ub=1)
+    # Allow leverage (i.e. weight total can be > 1)
+    if leverage:
+        constraint = None
+    else:
+        # Constrain weights to sum to 1
+        constraint = LinearConstraint(np.ones(len(w)), lb=1, ub=1)
+
+    # Allow long-short portfolios (i.e. individual weights can be < 0)
+    if short:
+        bounds = None
 
     # Optimize objective function
-    res = minimize(diversification_ratio, w.values, args=(cov, sd), constraints=constraint,
-                   bounds=bounds)
+    res = minimize(diversification_ratio, w.values, args=(cov, sd),
+                   constraints=constraint, bounds=bounds)
 
     # Number of independent bets in the optimized  portfolio
     bets_out = res.fun * res.fun
@@ -158,36 +166,38 @@ def optimize_diversification(w, cov, sd, bounds):
     return bets, bets_out, w_out, res
 
 
-def fit_portfolio(weights="portfolio_weights_2006.csv", asset_cov="asset_cov_2006.csv"):
+def fit_portfolio(weights="portfolio_weights_2006.csv",
+                  asset_cov="asset_cov_2006.csv",
+                  leverage=False, short=False):
 
     # Set input paths
     weight_path = raw_path.joinpath(weights)
     cov_path = processed_path.joinpath(asset_cov)
 
     # Fit portfolio
-    w, cov, sd, bounds = diversification_inputs(weights=weight_path, asset_cov=cov_path)
-    bets, bets_out, w_out, res = optimize_diversification(w, cov, sd, bounds)
+    w, cov, sd, bounds, w_df = diversification_inputs(weights=weight_path, asset_cov=cov_path)
+    bets, bets_out, w_out, res = optimize_diversification(w, cov, sd, bounds, leverage, short)
 
     # Output to screen
-    print()
-    print("Original Portfolio")
-    print(w.to_string().strip("Ticker\n"))
-    print("Original Bets:", bets.round(2))
+    print("Portfolio Bets:", bets.round(2))
     print()
     print("Optimized Portfolio")
     print(w_out.round(2).to_string().strip("Ticker\n"))
-    print("Optimal Bets: ", bets_out.round(2))
+    print("Total", w_out.sum().round(2))
+    # print("Optimal Bets: ", bets_out.round(2))
+    print("Optimal Bets: ", round(bets_out, 2))
     print("Difference:   ", np.subtract(bets_out, bets).round(2))
 
     # Save output
-    df = pd.DataFrame()
-    df["Original Weights"] = w
-    df["Fitted Weights"] = w_out.round(2)
+    w_df["Fitted Weights"] = w_out.round(2)
 
     year = re.findall('[0-9]+', weight_path.parts[-1])[0]
     newfile = results_path.joinpath(''.join(['fit', '_', year, ".csv"]))
-    df.to_csv(newfile)
+    w_df.to_csv(newfile)
 
+# TO DO:
+# 1. weighted return
+# 2. portfolio sharpe
 
 #------------------------------------------------
 # Factor analysis
