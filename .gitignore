@@ -1,4 +1,5 @@
-# Ignore processed data
+# Ignore derived data
+data/processed/**
 results/**
 
 # Ignore commentary

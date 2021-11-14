@@ -1,5 +1,6 @@
-import pprint
+import re
 from pathlib import Path
+import pprint
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -10,137 +11,57 @@ from factor_analyzer import FactorAnalyzer
 # from factor_analyzer.factor_analyzer import calculate_bartlett_sphericity as bartlett
 # from factor_analyzer.factor_analyzer import calculate_kmo as kmo
 
+from scipy.optimize import minimize, LinearConstraint
+
+# Configure file paths
+raw_path = Path('data/raw')
+processed_path = Path('data/processed')
+results_path = Path('results')
+
 # Wrap text when printing long collections in the terminal
 pp = pprint.PrettyPrinter(width=100, compact=True, indent=2)
 
 # Display DataFrames without truncation
 pd.set_option("display.max_columns", None, "precision", 2)
 
-def detect_colinear(fname="asset_cor_2009.csv", criterion=0.9):
+
+#------------------------------------------------
+# Data processesing
+#------------------------------------------------
+def detect_colinear(criterion=0.9):
     """Find the set of potentially colinear items in the correlation matrix."""
 
-    data = pd.read_csv(fname, index_col="Ticker")
-    corr = data[data.index]
+    for filename in raw_path.glob(''.join(['asset_cor_', '[0-9]'*4, '.csv'])):
+        if filename.is_file():
+            print(filename)
+            data = pd.read_csv(filename, index_col="Ticker")
 
-    # Set diagonal to NaN
-    np.fill_diagonal(corr.values, np.nan)
+            corr = data[data.index]
 
-    # Filter by criterion
-    filtered = corr.where(corr > criterion)
+            # Set diagonal to NaN
+            np.fill_diagonal(corr.values, np.nan)
 
-    # Drop empty columns
-    reduced = filtered.dropna(axis=1, how='all')
+            # Filter by criterion
+            filtered = corr.where(corr > criterion)
 
-    # Insert asset class name
-    reduced = pd.concat([data["Name"], reduced], axis=1)
+            # Drop empty columns
+            reduced = filtered.dropna(axis=1, how='all')
 
-    # Save the processed file
-    parts = fname.split("asset_cor_")
-    newfile = '_'.join(["colinear", parts[1]])
-    reduced.to_csv(newfile)
+            # Insert asset class name
+            reduced = pd.concat([data["Name"], reduced], axis=1)
 
-def diversification_ratio(weights, fname="asset_cor_2009_cov.csv"):
-    """Estimate the diversification ratio from an asset covariance matrix and weights."""
-
-    # TODO: pass in a list of tickers and weights to estimate that portfolio's diversification ratio
-
-    data = pd.read_csv(fname, index_col="Ticker")
-
-    # weights is a dictionary of ticker names and weights
-    w = pd.Series(weights)
-
-    # Covariance matrix must be square
-    assert data.shape[0] == data.shape[1]
-    # Weights must sum to 1
-    assert w.sum() == 1
-
-    cov = data.values
-    sd = np.sqrt(cov.diagonal())
-
-    # Create dummy array of for testing; sum(w) == 1.0
-    # w = np.full(len(cov), 1/len(cov))
-
-    ## Test with a dummy cov matrix
-    # w = np.array([0.33, 0.33, 0.34])
-    #
-    #---- Test 1: Variance = 1.0 ----
-    # cov = np.array([[1.0, 0.5, 0.5],
-    #                 [0.5, 1.0, 0.5],
-    #                 [0.5, 0.5, 1.0]])
-    # sd = np.ones(3)
-    #
-    #---- Test 2: Variance = 2.0 ----
-    # cov = np.array([[2.0, 1.0, 1.0],
-    #                 [1.0, 2.0, 1.0],
-    #                 [1.0, 1.0, 2.0]])
-    # sd = np.array([1.414, 1.414, 1.414])
-
-    dr = np.dot(w, sd) / np.sqrt(np.linalg.multi_dot([w, cov, w]))
-
-    # Number of independent bets is the square of the Diversification Ratio
-    bets = dr * dr
-
-    return data, sd, dr, bets
+            # Save the processed file
+            year = re.findall('[0-9]+', filename.parts[-1])[0]
+            newfile = processed_path.joinpath(''.join(["colinear_", year, ".csv"]))
+            # parts = fname.split("asset_cor_")
+            # newfile = '_'.join(["colinear", parts[1]])
+            reduced.to_csv(newfile)
 
 
-def factor(fname="asset_cor_2009.csv", rotation="varimax", n=5):
-    """Run an exploratory factor analysis and save the output."""
-
-    data = pd.read_csv(fname, index_col="Ticker")
-
-    # Extract the correlation columns from the DataFrame
-    corr = data[data.index]
-
-    fa = FactorAnalyzer(rotation=rotation, is_corr_matrix=True, n_factors=n)
-    fa.fit(corr)
-
-    # Print explained variance
-    fvar = fa.get_factor_variance()
-    print("Variables:", corr.shape)
-    print("Proportional explained variance:")
-    print(fvar[1].round(3))
-    print("Cumulative explained variance:")
-    print(fvar[2].round(3))
-
-    # Create factor DataFrame
-    factor_labels = [''.join(['F', str(i)]) for i in range(1, n+1)]
-    df = pd.DataFrame(data=fa.loadings_.round(2),
-                      index=data.index,
-                      columns=factor_labels)
-
-    # Create factor R2 DataFrame
-    r2_labels = ['_'.join([i, 'r2']) for i in factor_labels]
-    var = pd.DataFrame(data=np.square(fa.loadings_).round(2),
-                       index=data.index,
-                       columns=r2_labels)
-
-    # Concatenate name, factor loadings, R2
-    df = pd.concat([data["Name"], df, var], axis=1)
-
-    df["Communality"] = fa.get_communalities().round(2)
-
-    # Calculate Sharpe ratio: (R_i - R_shy)/SD_i
-    # Convert single value to float
-    risk_free_r = np.float64(data.loc['SHY', 'Annualized Return'].replace('%', ''))
-
-    # Convert Series to floats
-    r = data['Annualized Return'].str.replace('%', '').astype(np.float64)
-    sd = data['Annualized Standard Deviation'].str.replace('%', '').astype(np.float64)
-
-    sharpe = (r - risk_free_r)/sd
-    df["Sharpe"] = sharpe.round(2)
-
-    # Save the processed file
-    parts = fname.split(".csv")
-    newfile = ''.join([parts[0], '_', rotation, '_', str(n), '.csv'])
-    df.to_csv(newfile)
-
-    return fa, df
-
-def gen_covariance_files():
+def generate_covariances():
     """Create covariance matrices from correlations and standard deviations."""
-    path = Path()
-    for filename in path.glob(''.join(['asset_cor_', '[0-9]'*4, '.csv'])):
+
+    for filename in raw_path.glob(''.join(['asset_cor_', '[0-9]'*4, '.csv'])):
         if filename.is_file():
             print(filename)
             data = pd.read_csv(filename, index_col="Ticker")
@@ -159,25 +80,176 @@ def gen_covariance_files():
             assert all(diag.round(2) == var.values.round(2))
 
             # Save the processed file
-            parts = filename.name.split(".csv")
-            newfile = ''.join([parts[0], "_cov.csv"])
+            year = re.findall('[0-9]+', filename.parts[-1])[0]
+            newfile = processed_path.joinpath(''.join(["asset_cov_", year, ".csv"]))
+
             cov.to_csv(newfile)
 
             print(newfile, cov.shape)
 
-def run_pca(fname="asset_cor_2009_processed.csv"):
-    """Given a covariance matrix, derive the principal components from scratch."""
 
-    cov = pd.read_csv(fname, index_col="Ticker")
+#------------------------------------------------
+# Calucate Diversification Ratio
+#------------------------------------------------
+def diversification_ratio(w, cov, sd):
+    """Estimate the diversification ratio from an asset covariance matrix and weights.
 
-    # PCA: Extract eigenvalues and eigenvectors
-    values, vectors = np.linalg.eig(cov)
-    component_var = [round((i/sum(values)) * 100, 2) for i in sorted(values, reverse=True)]
-    loadings = vectors.T.dot(cov.T)
+    w:   Series of weights indexed by ticker
+    cov: covariance matrix of tickers
+    sd:  array of ticker standard deviations"""
 
-    # Purpose of transpose?
-    print(loadings.T)
+    # Diversification ratio:
+    dr = np.dot(w, sd) / np.sqrt(np.linalg.multi_dot([w, cov, w]))
 
-    # Convert to dataframe
-    df = pd.DataFrame(loadings, index=cov.index, columns=cov.columns)
-    # Z-scale?
+    # Multiply diversification ratio by -1 so that minimize() works properly
+    return -1*dr
+
+
+def diversification_inputs(weights, asset_cov):
+    """Generate the inputs for calculating the diversification_ratio.
+
+    weights:   1xn array of weights, indexed by ticker
+    asset_cov: nxn array of covariances, indexed by ticker"""
+
+    df = pd.read_csv(asset_cov, index_col="Ticker")
+    w_df = pd.read_csv(weights, index_col="Ticker")
+
+    # Extract weights and bounds
+    w = w_df["Weights"]
+    bounds = [i for i in zip(w_df['lower'], w_df['upper'])]
+
+    # Extract covariances for the set of tickers in weights
+    cov_df = df[w.index].loc[w.index]
+
+    # Weight vector must match covariance matrix
+    assert len(cov_df) == len(w)
+    # Weights must sum to 1
+    assert w.sum() == 1
+
+    cov = cov_df.values
+    sd = np.sqrt(cov.diagonal())
+
+    return w, cov, sd, bounds
+
+
+def optimize_diversification(w, cov, sd, bounds):
+    """Optimize the weights for the diversification_ratio() objective function."""
+
+    # minimize(fun, x0, args=(), method=None, jac=None, hess=None, hessp=None,
+    #          bounds=None, constraints=(), tol=None, callback=None, options=None)
+
+    # Number of independent bets in the original portfolio
+    dr = diversification_ratio(w, cov, sd)
+    bets = dr * dr
+
+    # Constrain weights to sum to 1
+    constraint = LinearConstraint(np.ones(len(w)), lb=1, ub=1)
+
+    # Optimize objective function
+    res = minimize(diversification_ratio, w.values, args=(cov, sd), constraints=constraint,
+                   bounds=bounds)
+
+    # Number of independent bets in the optimized  portfolio
+    bets_out = res.fun * res.fun
+
+    # Optimized portfolio weights
+    w_out = pd.Series(res.x, w.index)
+
+    return bets, bets_out, w_out, res
+
+
+def fit_portfolio(weights="portfolio_weights_2006.csv", asset_cov="asset_cov_2006.csv"):
+
+    # Set input paths
+    weight_path = raw_path.joinpath(weights)
+    cov_path = processed_path.joinpath(asset_cov)
+
+    # Fit portfolio
+    w, cov, sd, bounds = diversification_inputs(weights=weight_path, asset_cov=cov_path)
+    bets, bets_out, w_out, res = optimize_diversification(w, cov, sd, bounds)
+
+    # Output to screen
+    print()
+    print("Original Portfolio")
+    print(w.to_string().strip("Ticker\n"))
+    print("Original Bets:", bets.round(2))
+    print()
+    print("Optimized Portfolio")
+    print(w_out.round(2).to_string().strip("Ticker\n"))
+    print("Optimal Bets: ", bets_out.round(2))
+    print("Difference:   ", np.subtract(bets_out, bets).round(2))
+
+    # Save output
+    df = pd.DataFrame()
+    df["Original Weights"] = w
+    df["Fitted Weights"] = w_out.round(2)
+
+    year = re.findall('[0-9]+', weight_path.parts[-1])[0]
+    newfile = results_path.joinpath(''.join(['fit', '_', year, ".csv"]))
+    df.to_csv(newfile)
+
+
+#------------------------------------------------
+# Factor analysis
+#------------------------------------------------
+def factor(rotation="varimax", n=5):
+    """Run an exploratory factor analysis with n factors."""
+
+    ffits = {}
+
+    for filename in raw_path.glob(''.join(['asset_cor_', '[0-9]'*4, '.csv'])):
+        if filename.is_file():
+            print(filename)
+
+            data = pd.read_csv(filename, index_col="Ticker")
+
+            # Extract the correlation columns from the DataFrame
+            corr = data[data.index]
+
+            fa = FactorAnalyzer(rotation=rotation, is_corr_matrix=True, n_factors=n)
+            fa.fit(corr)
+
+            # Print explained variance
+            fvar = fa.get_factor_variance()
+            print("Variables:", corr.shape)
+            print("Proportional explained variance:")
+            print(fvar[1].round(3))
+            print("Cumulative explained variance:")
+            print(fvar[2].round(3))
+
+            # Create factor DataFrame
+            factor_labels = [''.join(['F', str(i)]) for i in range(1, n+1)]
+            df = pd.DataFrame(data=fa.loadings_.round(2),
+                              index=data.index,
+                              columns=factor_labels)
+
+            # Create factor R^2 DataFrame
+            r2_labels = ['_'.join([i, 'r2']) for i in factor_labels]
+            var = pd.DataFrame(data=np.square(fa.loadings_).round(2),
+                               index=data.index,
+                               columns=r2_labels)
+
+            # Concatenate name, factor loadings, R^2
+            df = pd.concat([data["Name"], df, var], axis=1)
+
+            df["Communality"] = fa.get_communalities().round(2)
+
+            # Calculate Sharpe ratio: (R_i - R_shy)/SD_i
+            # Convert single value to float
+            risk_free_r = np.float64(data.loc['SHY', 'Annualized Return'].replace('%', ''))
+
+            # Convert Series to floats
+            r = data['Annualized Return'].str.replace('%', '').astype(np.float64)
+            sd = data['Annualized Standard Deviation'].str.replace('%', '').astype(np.float64)
+
+            sharpe = (r - risk_free_r)/sd
+            df["Sharpe"] = sharpe.round(2)
+
+            # Save the processed file
+            year = re.findall('[0-9]+', filename.parts[-1])[0]
+            newfile = results_path.joinpath(''.join([rotation, '_', str(n), '_', year, ".csv"]))
+            df.to_csv(newfile)
+
+            ffits[str(year)] = fa
+
+    return ffits
