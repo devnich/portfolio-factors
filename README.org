@@ -1,7 +1,26 @@
 #+STARTUP: showall indent
 #+OPTIONS: tex:t toc:2 H:6 ^:{}
 
-* NumPy arrays
+* Finance references
+1. Diversification and independent bets (1): https://blog.thinknewfound.com/2018/12/maximizing-diversification/
+2. Diversification and independent bets (2): https://investresolve.com/portfolio-optimization-simple-optimal-methods/
+3. Diversification and independent bets (3): https://investresolve.com/portfolio-optimization-case-study-managed-futures/
+4. Assets by economic regime: https://www.aqr.com/Insights/Research/White-Papers/When-Stock-Bond-Diversification-Fails
+
+* Factor Analysis references
+1. https://journals.sagepub.com/doi/full/10.1177/0095798418771807
+2. https://stats.idre.ucla.edu/spss/seminars/introduction-to-factor-analysis/a-practical-introduction-to-factor-analysis/
+
+* Factor Analyzer library documentation
+https://factor-analyzer.readthedocs.io/en/latest/factor_analyzer.html
+1. Loadings of variables onto factors:
+    ~fa.loadings_~
+2. Proportion of variable's variance that is shared (i.e. non-unique, explained by other variables):
+    ~fa.get_communalities()~
+3. Proportion of variable's variance that is unique; inverse of ~get_communalities()~:
+    ~fa.get_uniquenesses()~
+
+* NumPy operations
 1. Return vertical vector:
    ~v.reshape(-1, 1)~
 2. Return horizontal vector:
@@ -16,36 +35,3 @@
 * Correlation and covariance
 cor(x,y) = cov(x,y) / (sd(x) * sd(y))
 cov(x,y) = cor(x,y) * sd(x) * sd(y)
-
-* Diversification ratio
-https://blog.thinknewfound.com/2018/12/maximizing-diversification/
-DR = (w . sd) / sqrt(w . Σ . wT)
-
-#+BEGIN_SRC python
-dr = numpy.dot(w, sd) / numpy.sqrt(numpy.linalg.multi_dot(w, cov, w))
-#+END_SRC
-
-* Optimization
-**  Constraints
-1. w.sum() == 1
-2. 0 <= w_i <= 1 (optional; the solution is a long-short portfolio without this constraint)
-
-** Effect size
-1. dr^2 of original portfolio - dr^2 of optimized portfolio
-2. dr^2 of 1st optimized portfolio - dr^2 of 2nd optimized portfolio
-
-* Using the Factor Analyzer library
-https://factor-analyzer.readthedocs.io/en/latest/factor_analyzer.html
-1. Loadings of variables onto factors:
-    ~fa.loadings_~
-2. Proportion of variable's variance that is shared (i.e. non-unique, explained by other variables):
-    ~fa.get_communalities()~
-3. Proportion of variable's variance that is unique; inverse of ~get_communalities()~:
-    ~fa.get_uniquenesses()~
-
-* Statistics references
-** Principle Components Analysis
-https://machinelearningmastery.com/calculate-principal-component-analysis-scratch-python/
-** Factor Analysis
-https://journals.sagepub.com/doi/full/10.1177/0095798418771807
-https://stats.idre.ucla.edu/spss/seminars/introduction-to-factor-analysis/a-practical-introduction-to-factor-analysis/

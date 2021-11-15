@@ -171,7 +171,8 @@ def fit_portfolio(weights="portfolio_weights_2006.csv",
                   asset_cov="asset_cov_2006.csv",
                   leverage=False, short=False):
 
-    # Set input paths
+    # Set input paths. If the asset_cov file does not exist, create it in
+    # data/processed using the generate_covariances() function.
     weight_path = raw_path.joinpath(weights)
     cov_path = processed_path.joinpath(asset_cov)
 
@@ -244,14 +245,15 @@ def factor(rotation="varimax", n=5):
 
             df["Communality"] = fa.get_communalities().round(2)
 
-            # Calculate Sharpe ratio: (R_i - R_shy)/SD_i
-            # Convert single value to float
+            ## Calculate Sharpe ratio: : (R_i - R_shy)/SD_i
+            # Convert SHY single string to float
             risk_free_r = np.float64(data.loc['SHY', 'Annualized Return'].replace('%', ''))
 
             # Convert Series to floats
             r = data['Annualized Return'].str.replace('%', '').astype(np.float64)
             sd = data['Annualized Standard Deviation'].str.replace('%', '').astype(np.float64)
 
+            # Calculate Sharpe ratio
             sharpe = (r - risk_free_r)/sd
             df["Sharpe"] = sharpe.round(2)
 
