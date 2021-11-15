@@ -32,6 +32,7 @@ https://factor-analyzer.readthedocs.io/en/latest/factor_analyzer.html
 5. Matrix multiplication (row x column):
    ~v @ array~
 
-* Correlation and covariance
+* Correlation <> covariance
 cor(x,y) = cov(x,y) / (sd(x) * sd(y))
+
 cov(x,y) = cor(x,y) * sd(x) * sd(y)
