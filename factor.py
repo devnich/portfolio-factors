@@ -1,17 +1,19 @@
+# Import standard libraries
 import re
-from pathlib import Path
 import pprint
+from pathlib import Path
+
+# Import numerical computing libraries
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
+from scipy.optimize import minimize, LinearConstraint
 
-# conda install -c ets factor_analyzer
+# Install the factor_analyzer library with:
+#   conda install -c ets factor_analyzer
+
 from factor_analyzer import FactorAnalyzer
 # from factor_analyzer.factor_analyzer import calculate_bartlett_sphericity as bartlett
 # from factor_analyzer.factor_analyzer import calculate_kmo as kmo
-
-from scipy.optimize import minimize, LinearConstraint
 
 # Configure file paths
 raw_path = Path('data/raw')
@@ -36,6 +38,7 @@ def detect_colinear(criterion=0.9):
             print(filename)
             data = pd.read_csv(filename, index_col="Ticker")
 
+            # Extract the correlation columns from the DataFrame
             corr = data[data.index]
 
             # Set diagonal to NaN
@@ -53,8 +56,6 @@ def detect_colinear(criterion=0.9):
             # Save the processed file
             year = re.findall('[0-9]+', filename.parts[-1])[0]
             newfile = processed_path.joinpath(''.join(["colinear_", year, ".csv"]))
-            # parts = fname.split("asset_cor_")
-            # newfile = '_'.join(["colinear", parts[1]])
             reduced.to_csv(newfile)
 
 
@@ -66,11 +67,12 @@ def generate_covariances():
             print(filename)
             data = pd.read_csv(filename, index_col="Ticker")
 
-            # Get all the columns whose label matches a row label
+            # Extract the correlation columns from the DataFrame
             corr = data[data.index]
-            # standard deviations are entered as text percentages in original file
+            # Standard deviations are formatted as text strings in the input
+            # file; clean this up:
             sd = data['Annualized Standard Deviation'].str.replace('%', '').astype(np.float64)
-            # NB: To reshape a Series, drill down to the values of the underlying array
+            # To reshape a Series, drill down to the values of the underlying array
             cov = corr * sd * sd.values.reshape(-1, 1)
 
             # Test the correctness of our transformation
@@ -82,20 +84,19 @@ def generate_covariances():
             # Save the processed file
             year = re.findall('[0-9]+', filename.parts[-1])[0]
             newfile = processed_path.joinpath(''.join(["asset_cov_", year, ".csv"]))
-
             cov.to_csv(newfile)
 
             print(newfile, cov.shape)
 
 
 #------------------------------------------------
-# Calucate Diversification Ratio
+# Calculate Diversification Ratio
 #------------------------------------------------
 def diversification_ratio(w, cov, sd):
     """Estimate the diversification ratio from an asset covariance matrix and weights.
 
     w:   Series of weights indexed by ticker
-    cov: covariance matrix of tickers
+    cov: covariance matrix (array) of tickers
     sd:  array of ticker standard deviations"""
 
     # Diversification ratio:
@@ -183,8 +184,7 @@ def fit_portfolio(weights="portfolio_weights_2006.csv",
     print()
     print("Optimized Portfolio")
     print(w_out.round(2).to_string().strip("Ticker\n"))
-    print("Total", w_out.sum().round(2))
-    # print("Optimal Bets: ", bets_out.round(2))
+    print("Total:", w_out.sum().round(2))
     print("Optimal Bets: ", round(bets_out, 2))
     print("Difference:   ", np.subtract(bets_out, bets).round(2))
 
@@ -200,7 +200,7 @@ def fit_portfolio(weights="portfolio_weights_2006.csv",
 # 2. portfolio sharpe
 
 #------------------------------------------------
-# Factor analysis
+# Asset factor analysis
 #------------------------------------------------
 def factor(rotation="varimax", n=5):
     """Run an exploratory factor analysis with n factors."""
