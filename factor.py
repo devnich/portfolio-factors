@@ -125,7 +125,7 @@ def diversification_inputs(weights, asset_cov):
     # Weight vector must match covariance matrix
     assert len(cov_df) == len(w)
     # Weights must sum to 1
-    assert w.sum() == 1
+    assert w.sum().round(3) == 1
 
     cov = cov_df.values
     sd = np.sqrt(cov.diagonal())
@@ -184,13 +184,13 @@ def fit_portfolio(weights="portfolio_weights_2006.csv",
     print("Portfolio Bets:", bets.round(2))
     print()
     print("Optimized Portfolio")
-    print(w_out.round(2).to_string().strip("Ticker\n"))
+    print(w_out.where(w_out > 0.005).dropna().round(2).to_string().strip("Ticker\n"))
     print("Total:", w_out.sum().round(2))
     print("Optimal Bets: ", round(bets_out, 2))
     print("Difference:   ", np.subtract(bets_out, bets).round(2))
 
     # Save output
-    w_df["Fitted Weights"] = w_out.round(2)
+    w_df["Fitted Weights"] = w_out.round(3)
 
     year = re.findall('[0-9]+', weight_path.parts[-1])[0]
     newfile = results_path.joinpath(''.join(['fit', '_', year, ".csv"]))
