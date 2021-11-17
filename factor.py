@@ -115,6 +115,8 @@ def diversification_inputs(weights, asset_cov):
     df = pd.read_csv(asset_cov, index_col="Ticker")
     w_df = pd.read_csv(weights, index_col="Ticker")
 
+    # TODO: Check input data for correctness
+
     # Extract weights and bounds
     w = w_df["Weights"]
     bounds = [i for i in zip(w_df['lower'], w_df['upper'])]
@@ -124,8 +126,8 @@ def diversification_inputs(weights, asset_cov):
 
     # Weight vector must match covariance matrix
     assert len(cov_df) == len(w)
-    # Weights must sum to 1
-    assert w.sum().round(3) == 1
+    # Weights must sum to 1 if our input portfolio is unlevered
+    print("Provided portfolio weights sum to", w.sum().round(3))
 
     cov = cov_df.values
     sd = np.sqrt(cov.diagonal())
@@ -181,13 +183,13 @@ def fit_portfolio(weights="portfolio_weights_2006.csv",
     bets, bets_out, w_out, res = optimize_diversification(w, cov, sd, bounds, leverage, short)
 
     # Output to screen
-    print("Portfolio Bets:", bets.round(2))
-    print()
     print("Optimized Portfolio")
     print(w_out.where(w_out > 0.005).dropna().round(2).to_string().strip("Ticker\n"))
-    print("Total:", w_out.sum().round(2))
-    print("Optimal Bets: ", round(bets_out, 2))
-    print("Difference:   ", np.subtract(bets_out, bets).round(2))
+    print("Total:  ", w_out.sum().round(2))
+    print()
+    print("Portfolio Bets:", bets.round(2))
+    print("Optimal Bets:  ", round(bets_out, 2))
+    print("Difference:    ", np.subtract(bets_out, bets).round(2))
 
     # Save output
     w_df["Fitted Weights"] = w_out.round(3)
