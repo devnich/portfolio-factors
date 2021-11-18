@@ -244,15 +244,15 @@ def factor(rotation="varimax", n=5):
 
             df["Communality"] = fa.get_communalities().round(2)
 
-            ## Calculate Sharpe ratio: : (R_i - R_shy)/SD_i
-            # Convert SHY single string to float
+            ## Calculate Sharpe ratio: (R_i - R_shy)/SD_i
+            #   Convert SHY single string to float
             risk_free_r = np.float64(data.loc['SHY', 'Annualized Return'].replace('%', ''))
 
-            # Convert Series to floats
+            #   Convert Series to floats
             r = data['Annualized Return'].str.replace('%', '').astype(np.float64)
             sd = data['Annualized Standard Deviation'].str.replace('%', '').astype(np.float64)
 
-            # Calculate Sharpe ratio
+            #   Calculate Sharpe ratio
             sharpe = (r - risk_free_r)/sd
             df["Sharpe"] = sharpe.round(2)
 
