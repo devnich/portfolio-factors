@@ -12,9 +12,9 @@
 2. ~diversification_inputs()~ retrieves the asset weights, covariances, and standard deviations from the covariance matrix file
 3. ~optimize_diversification()~ finds the set of asset weights that maximizes the Diversification Ratio. The additional parameters are:
    1. ~bounds~: a list of tuples containing the lower and upper bounds for each weight parameter
-   2. ~leverage~: a True/False flag. If True, leverage is allowed and  the weight total can vary freely.If False, the sum of all weights must equal 1.
+   2. ~leverage~: a True/False flag. If True, leverage is allowed and  the weight total can vary freely. If False, the sum of all weights must equal 1.
    3. ~short~: a True/False flag. If True, ~bounds~ is set to ~None~. This is a convenient way of allowing any weight to be negative without having to adjust the individual bounds.
-4. ~fit_portfolio()~: is the top-level function for assessing the diversification of a portfolio. It will calculate the Diversification Ratio of a given portfolio and compare it with the optimized portfolio of the asset universe.
+4. ~fit_portfolio()~: the top-level function for assessing the diversification of a portfolio. It will calculate the Diversification Ratio of a given portfolio and compare it with the optimized portfolio of the asset universe.
 *** Exploratory Factor Analysis
 1. ~factor()~ performs an exploratory factor analysis on each of the correlation matrix files in ~data/raw~
 
@@ -55,7 +55,7 @@ https://factor-analyzer.readthedocs.io/en/latest/factor_analyzer.html
 5. Matrix multiplication (row x column):
    ~v @ array~
 
-* Correlation <> covariance
+* correlation <> covariance
 cor(x,y) = cov(x,y) / (sd(x) * sd(y))
 
 cov(x,y) = cor(x,y) * sd(x) * sd(y)
