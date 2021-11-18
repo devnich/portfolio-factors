@@ -1,11 +1,34 @@
 #+STARTUP: showall indent
 #+OPTIONS: tex:t toc:2 H:6 ^:{}
 
+* Navigating the code
+** Quality control
+1. ~detect_colinear()~ identifies all of the tickers whose correlation exceeds a threshold
+** Intermediate file generation
+1. ~generate_covariances()~ ingests each correlation matrix file in ~data/raw~ and creates a corresponding covariance matrix file in ~data/processed~
+** Analyses
+*** Maximum Diversification
+1. ~diversification_ratio()~ calculates the Diversification Ratio from a set of asset weights, covariances, and standard deviations
+2. ~diversification_inputs()~ retrieves the asset weights, covariances, and standard deviations from the covariance matrix file
+3. ~optimize_diversification()~ finds the set of asset weights that maximizes the Diversification Ratio. The additional parameters are:
+   1. ~bounds~: a list of tuples containing the lower and upper bounds for each weight parameter
+   2. ~leverage~: a True/False flag. If True, leverage is allowed and  the weight total can vary freely.If False, the sum of all weights must equal 1.
+   3. ~short~: a True/False flag. If True, ~bounds~ is set to ~None~. This is a convenient way of allowing any weight to be negative without having to adjust the individual bounds.
+4. ~fit_portfolio()~: is the top-level function for assessing the diversification of a portfolio. It will calculate the Diversification Ratio of a given portfolio and compare it with the optimized portfolio of the asset universe.
+*** Exploratory Factor Analysis
+1. ~factor()~ performs an exploratory factor analysis on each of the correlation matrix files in ~data/raw~
+
 * Finance references
 1. Diversification and independent bets (1): https://blog.thinknewfound.com/2018/12/maximizing-diversification/
 2. Diversification and independent bets (2): https://investresolve.com/portfolio-optimization-simple-optimal-methods/
 3. Diversification and independent bets (3): https://investresolve.com/portfolio-optimization-case-study-managed-futures/
 4. Assets by economic regime: https://www.aqr.com/Insights/Research/White-Papers/When-Stock-Bond-Diversification-Fails
+5. Geometric terminal wealth (1): https://blog.thinknewfound.com/2018/03/you-are-not-a-monte-carlo-simulation/
+6. Geometric terminal wealth (2): https://blog.thinknewfound.com/2017/07/growth-optimal-portfolios/
+
+*  Comments on optimization in finance
+1. https://twitter.com/macrocephalopod/status/1459525032128954369
+2. https://twitter.com/ryxcommar/status/1459528011028520962
 
 * Factor Analysis references
 1. https://journals.sagepub.com/doi/full/10.1177/0095798418771807

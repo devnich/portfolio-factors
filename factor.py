@@ -69,8 +69,7 @@ def generate_covariances():
 
             # Extract the correlation columns from the DataFrame
             corr = data[data.index]
-            # Standard deviations are formatted as text strings in the input
-            # file; clean this up:
+            # Extract float from standard deviation string
             sd = data['Annualized Standard Deviation'].str.replace('%', '').astype(np.float64)
             # To reshape a Series, drill down to the values of the underlying array
             cov = corr * sd * sd.values.reshape(-1, 1)
@@ -109,13 +108,14 @@ def diversification_ratio(w, cov, sd):
 def diversification_inputs(weights, asset_cov):
     """Generate the inputs for calculating the diversification_ratio.
 
-    weights:   1xn array of weights, indexed by ticker
+    weights:   1xn array of weights, indexed by ticker. The weights file also
+               includes upper and lower bounds for each asset in the portfolio.
     asset_cov: nxn array of covariances, indexed by ticker"""
 
     df = pd.read_csv(asset_cov, index_col="Ticker")
     w_df = pd.read_csv(weights, index_col="Ticker")
 
-    # TODO: Check input data for correctness
+    # TO DO: Check input data for missing entries
 
     # Extract weights and bounds
     w = w_df["Weights"]
@@ -152,7 +152,7 @@ def optimize_diversification(w, cov, sd, bounds, leverage, short):
         # Constrain weights to sum to 1
         constraint = LinearConstraint(np.ones(len(w)), lb=1, ub=1)
 
-    # Allow long-short portfolios (i.e. individual weights can be < 0)
+    # Allow unbounded long-short portfolios (i.e. individual weights can be < 0)
     if short:
         bounds = None
 
@@ -198,9 +198,6 @@ def fit_portfolio(weights="portfolio_weights_2006.csv",
     newfile = results_path.joinpath(''.join(['fit', '_', year, ".csv"]))
     w_df.to_csv(newfile)
 
-# TO DO:
-# 1. weighted return
-# 2. portfolio sharpe
 
 #------------------------------------------------
 # Asset factor analysis
@@ -230,7 +227,7 @@ def factor(rotation="varimax", n=5):
             print("Cumulative explained variance:")
             print(fvar[2].round(3))
 
-            # Create factor DataFrame
+            # Create factor loadings DataFrame
             factor_labels = [''.join(['F', str(i)]) for i in range(1, n+1)]
             df = pd.DataFrame(data=fa.loadings_.round(2),
                               index=data.index,
