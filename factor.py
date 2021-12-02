@@ -27,6 +27,8 @@ pp = pprint.PrettyPrinter(width=100, compact=True, indent=2)
 pd.set_option("display.max_columns", None, "precision", 2)
 
 
+# TO DO: Add file name mangling for suffixes, e.g. asset_cor_2006_20day.csv
+
 #------------------------------------------------
 # Data processesing
 #------------------------------------------------
@@ -169,9 +171,7 @@ def optimize_diversification(w, cov, sd, bounds, leverage, short):
     return bets, bets_out, w_out, res
 
 
-def fit_portfolio(weights="portfolio_weights_2006.csv",
-                  asset_cov="asset_cov_2006.csv",
-                  leverage=False, short=False):
+def fit_portfolio(weights="portfolio_weights_2006.csv", asset_cov="asset_cov_2006.csv", leverage=False, short=False):
 
     # Set input paths. If the asset_cov file does not exist, create it in
     # data/processed using the generate_covariances() function.
@@ -184,7 +184,7 @@ def fit_portfolio(weights="portfolio_weights_2006.csv",
 
     # Output to screen
     print("Optimized Portfolio")
-    print(w_out.where(w_out > 0.005).dropna().round(2).to_string().strip("Ticker\n"))
+    print(w_out.where(w_out > 0.005).dropna().sort_values(ascending=False).round(2).to_string().strip("Ticker\n"))
     print("Total:  ", w_out.sum().round(2))
     print()
     print("Portfolio Bets:", bets.round(2))
@@ -198,6 +198,13 @@ def fit_portfolio(weights="portfolio_weights_2006.csv",
     newfile = results_path.joinpath(''.join(['fit', '_', year, ".csv"]))
     w_df.to_csv(newfile)
 
+    # return w_df
+
+# Print "Fitted Weights "Series from w_df:
+#   print(w_df["Fitted Weights"].where(w_df["Fitted Weights"] > 0.005).dropna().sort_values(ascending=False).round(2).to_string().strip("Ticker"))
+#
+# Print w_df DataFrame:
+#   print(w_df.where(w_df["Fitted Weights"] > 0.005).dropna().sort_values(by="Fitted Weights", ascending=False).round(2))
 
 #------------------------------------------------
 # Asset factor analysis
@@ -245,7 +252,7 @@ def factor(rotation="varimax", n=5):
             df["Communality"] = fa.get_communalities().round(2)
 
             ## Calculate Sharpe ratio: (R_i - R_shy)/SD_i
-            #   Convert SHY single string to float
+            #   Convert SHY string to float
             risk_free_r = np.float64(data.loc['SHY', 'Annualized Return'].replace('%', ''))
 
             #   Convert Series to floats

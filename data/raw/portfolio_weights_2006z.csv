@@ -1,9 +1,9 @@
 ﻿Ticker,Weights,lower,upper
 AGG,0,0,1
 DBC,0.2,0,1
-DFJ,0.2,0,1
+DFJ,0,0,1
 EEM,0,0,1
-FIASX,0,0,1
+FIASX,0.2,0,1
 GDX,0,0,1
 GLD,0,0,1
 IEF,0,0,1
@@ -14,7 +14,8 @@ LQD,0,0,1
 PPA,0,0,0.0001
 SHY,0,0,0.0001
 TIP,0,0,1
-TLT,0.26,0,1
+TLT,0,0,1
+SYNZ,0.2,0,1
 VAW,0,0,1
 VDC,0.2,0,1
 VDE,0,0,1
