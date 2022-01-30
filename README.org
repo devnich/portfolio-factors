@@ -23,8 +23,8 @@
 2. Diversification and independent bets (2): https://investresolve.com/portfolio-optimization-simple-optimal-methods/
 3. Diversification and independent bets (3): https://investresolve.com/portfolio-optimization-case-study-managed-futures/
 4. Assets by economic regime: https://www.aqr.com/Insights/Research/White-Papers/When-Stock-Bond-Diversification-Fails
-5. Geometric terminal wealth (1): https://blog.thinknewfound.com/2018/03/you-are-not-a-monte-carlo-simulation/
-6. Geometric terminal wealth (2): https://blog.thinknewfound.com/2017/07/growth-optimal-portfolios/
+5. Geometric terminal wealth (1): https://blog.thinknewfound.com/2017/07/growth-optimal-portfolios/
+6. Geometric terminal wealth (2): https://blog.thinknewfound.com/2018/03/you-are-not-a-monte-carlo-simulation/
 
 *  Comments on optimization in finance
 1. https://twitter.com/macrocephalopod/status/1459525032128954369

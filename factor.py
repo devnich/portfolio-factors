@@ -91,6 +91,22 @@ def generate_covariances():
 
 
 #------------------------------------------------
+# Calculate annualized median geometric return
+#------------------------------------------------
+def geometric_median(w, m, cov, sd):
+    """Estimate the median geometric return (annualized) of a portfolio.
+
+    w:   Series of weights indexed by ticker
+    m:   array of single-period expected returns
+    cov: covariance matrix (array) of tickers
+    sd:  array of ticker standard deviations"""
+
+    single_period_g = np.dot(w, m) - np.sqrt(np.linalg.multi_dot([w, cov, w]))
+    g = np.exp(single_period_g)
+
+    return g
+
+#------------------------------------------------
 # Calculate Diversification Ratio
 #------------------------------------------------
 def diversification_ratio(w, cov, sd):
@@ -184,7 +200,7 @@ def fit_portfolio(weights="portfolio_weights_2006.csv", asset_cov="asset_cov_200
 
     # Output to screen
     print("Optimized Portfolio")
-    print(w_out.where(w_out > 0.005).dropna().sort_values(ascending=False).round(2).to_string().strip("Ticker\n"))
+    print(w_out.where(w_out > 0.005).dropna().sort_values(ascending=False).round(2).to_string().strip("Ticker"))
     print("Total:  ", w_out.sum().round(2))
     print()
     print("Portfolio Bets:", bets.round(2))
