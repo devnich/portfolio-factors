@@ -19,6 +19,7 @@
 1. ~factor()~ performs an exploratory factor analysis on each of the correlation matrix files in ~data/raw~
 
 * Finance references
+** Portfolio diversification
 1. Diversification and independent bets (1): https://blog.thinknewfound.com/2018/12/maximizing-diversification/
 2. Diversification and independent bets (2): https://investresolve.com/portfolio-optimization-simple-optimal-methods/
 3. Diversification and independent bets (3): https://investresolve.com/portfolio-optimization-case-study-managed-futures/
@@ -26,15 +27,22 @@
 5. Geometric terminal wealth (1): https://blog.thinknewfound.com/2017/07/growth-optimal-portfolios/
 6. Geometric terminal wealth (2): https://blog.thinknewfound.com/2018/03/you-are-not-a-monte-carlo-simulation/
 
-*  Comments on optimization in finance
+**  How to approach optimization in finance
 1. https://twitter.com/macrocephalopod/status/1459525032128954369
 2. https://twitter.com/ryxcommar/status/1459528011028520962
 
-* Factor Analysis references
+* Statistics references
+** Factor Analysis
 1. https://journals.sagepub.com/doi/full/10.1177/0095798418771807
 2. https://stats.idre.ucla.edu/spss/seminars/introduction-to-factor-analysis/a-practical-introduction-to-factor-analysis/
 
-* Factor Analyzer library documentation
+** correlation <> covariance
+cor(x,y) = cov(x,y) / (sd(x) * sd(y))
+
+cov(x,y) = cor(x,y) * sd(x) * sd(y)
+
+* Python references
+** Factor Analyzer library documentation
 https://factor-analyzer.readthedocs.io/en/latest/factor_analyzer.html
 1. Loadings of variables onto factors:
     ~fa.loadings_~
@@ -43,7 +51,7 @@ https://factor-analyzer.readthedocs.io/en/latest/factor_analyzer.html
 3. Proportion of variable's variance that is unique; inverse of ~get_communalities()~:
     ~fa.get_uniquenesses()~
 
-* NumPy operations
+** NumPy operations
 1. Return vertical vector:
    ~v.reshape(-1, 1)~
 2. Return horizontal vector:
@@ -54,8 +62,3 @@ https://factor-analyzer.readthedocs.io/en/latest/factor_analyzer.html
    ~v.reshape(-1, 1) * array~
 5. Matrix multiplication (row x column):
    ~v @ array~
-
-* correlation <> covariance
-cor(x,y) = cov(x,y) / (sd(x) * sd(y))
-
-cov(x,y) = cor(x,y) * sd(x) * sd(y)
