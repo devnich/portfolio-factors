@@ -1,0 +1,8 @@
+Category,Growth,Inflation,Rates
+Long Treasury,-3,-3,-3
+Long TIPS,-3,0,-3
+Short Treasury/TIPS,0,0,0
+Cash,0,-3,0
+Debt,3,3,3
+Equities,3,-1,0
+Commodities,3,3,-1
